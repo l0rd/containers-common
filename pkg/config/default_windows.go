@@ -42,11 +42,14 @@ func getLibpodTmpDir() string {
 }
 
 // getDefaultMachineVolumes returns default mounted volumes (possibly with env vars, which will be expanded)
+// It is executed only if the machine provider is Hyper-V and it mimics WSL
+// behavior where the host %SystemDrive% (e.g. C:\) is automatically mounted
+// in the guest under /mnt/ (e.g. /mnt/c/)
 func getDefaultMachineVolumes() []string {
 	hd := homedir.Get()
 	vol := filepath.VolumeName(hd)
-	hostMnt := filepath.ToSlash(strings.TrimPrefix(hd, vol))
-	return []string{fmt.Sprintf("%s:%s", hd, hostMnt)}
+	hostMnt := "/mnt/" + strings.ToLower(vol[0:1])
+	return []string{fmt.Sprintf("%s:%s", vol+"\\", filepath.ToSlash(hostMnt))}
 }
 
 func getDefaultComposeProviders() []string {
